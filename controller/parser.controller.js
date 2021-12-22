@@ -20,13 +20,11 @@ class ParserController {
     const { title, price, category } = parser;
 
     client.query(
-      "INSERT INTO parse_info(title, price, category) VALUES($1, $2, $3) RETURNING *;",
-      [title, price, category]
+      "INSERT INTO cards_info (title, description, price, category) VALUES($1, $2, $3, $4) RETURNING *;",
+      [title, description, price, category]
     );
 
-    console.log(title, price, category);
-
-    // res.json("ok");
+    res.json("ok");
   }
 }
 

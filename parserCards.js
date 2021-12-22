@@ -1,12 +1,22 @@
-/*  Если вы не понимаете что здесь происходит,
-то исходники кода можно найти здесь: 
-https://www.youtube.com/watch?v=dljI-PgYSek&t=8s*/
+/* https://www.youtube.com/watch?v=dljI-PgYSek&t=8s */
 
 import ax from "axios";
 const { get } = ax;
 import chee from "cheerio";
 const { load } = chee;
 import fs from "fs";
+
+// CLOUDINARY *************************
+
+import cloudinary from "cloudinary";
+
+cloudinary.config({
+  cloud_name: "dwwijk4ok",
+  api_key: "764797469776175",
+  api_secret: "htxBCYfRJOW070qt2PjK2Hyj01I",
+});
+
+// ***********************************
 
 const cardsInfo = [];
 
@@ -15,11 +25,11 @@ function numFromStr(str) {
   return prices.join(" — ");
 }
 
-const writeFile = (cardsInfo) => {
+const writeFile = (writeData) => {
   fs.writeFile(
     "./cardsInfo.json",
 
-    `${JSON.stringify(cardsInfo, null, 2)}`,
+    `${JSON.stringify(...writeData, null, 2)}`,
     (err) => {
       if (err) throw err;
       console.log("Data has been replaced!");
@@ -30,6 +40,7 @@ const writeFile = (cardsInfo) => {
 ////////////////////////////////////////////////////////////////////
 
 // CARDS PARSING
+
 const parseFranchiseInfo = async (url, category) => {
   try {
     // В этот массив попадают объекты сформированные в цикле
@@ -52,6 +63,7 @@ const parseFranchiseInfo = async (url, category) => {
 
       selector(".tdb-view__item").each(async (i, element) => {
         // На каждой итерации создается объект с данными о франшизе
+
         ///////////////////////////////////////////////////////////////////////////////////
         // CARDS DESCRIPTION PARSING
         const parseDescription = async (url) => {
@@ -74,29 +86,33 @@ const parseFranchiseInfo = async (url, category) => {
             let franchiseData = [];
 
             selector(".fr-page").each(async (i, el) => {
-              const promise = await new Promise((resolve, reject) => {
-                return resolve({
-                  priceFranchise: selector(el)
-                    .find(".fr-page__price-inner")
-                    .html(),
-                  mainInfo: selector(el)
-                    .find(".fr-page__basic-info-box")
-                    .html(),
-                  companyDescr: selector(el).find("#company_descr_tpl").html(),
-                  franchDescr: selector(el).find("#franch_descr_tpl").html(),
-                  supportDescr: selector(el).find("#support_descr").html(),
-                  buyersRequirements: selector(el)
-                    .find("#buyers_requirements_tpl")
-                    .html(),
-                  quartersRequirements: selector(el)
-                    .find("#quarters_requirements_tpl")
-                    .html(),
-                });
-              });
+              const promiseDescription = await new Promise(
+                (resolve, reject) => {
+                  return resolve({
+                    priceFranchise: selector(el)
+                      .find(".fr-page__price-inner")
+                      .html(),
+                    mainInfo: selector(el)
+                      .find(".fr-page__basic-info-box")
+                      .html(),
+                    companyDescr: selector(el)
+                      .find("#company_descr_tpl")
+                      .html(),
+                    franchDescr: selector(el).find("#franch_descr_tpl").html(),
+                    supportDescr: selector(el).find("#support_descr").html(),
+                    buyersRequirements: selector(el)
+                      .find("#buyers_requirements_tpl")
+                      .html(),
+                    quartersRequirements: selector(el)
+                      .find("#quarters_requirements_tpl")
+                      .html(),
+                  });
+                }
+              );
 
-              const promiseResult = await promise;
+              const promiseDescriptionResult = await promiseDescription;
 
-              franchiseData.push(promiseResult);
+              franchiseData.push(promiseDescriptionResult);
             });
 
             return franchiseData;
@@ -106,18 +122,19 @@ const parseFranchiseInfo = async (url, category) => {
         };
 
         ///////////////////////////////////////////////////////////////////////////////////////////
-        const promiseInfo = await new Promise(async (resolve, reject) => {
+
+        const promiseCard = await new Promise(async (resolve, reject) => {
+          const getImage = selector(element)
+            .find("img.tdb-view__picture")
+            .attr("src")
+            .endsWith(".jpg")
+            ? `https://www.beboss.ru${selector(element)
+                .find("img.tdb-view__picture")
+                .attr("src")}`
+            : "C:/Users/macks/Traffic House/back/Yellow_icon.svg.png";
+
           return resolve({
-            image: selector(element)
-              .find("img.tdb-view__picture")
-              .attr("src")
-              .endsWith(".jpg")
-              ? `https://www.beboss.ru${selector(element)
-                  .find("img.tdb-view__picture")
-                  .attr("src")}`
-              : `${selector(element)
-                  .find("img.tdb-view__picture")
-                  .attr("src")}`,
+            image: getImage,
             title: selector(element).find("h3.tdb-view__text").text(),
             description: selector(element)
               .find("span.fr-card-list__description")
@@ -135,9 +152,38 @@ const parseFranchiseInfo = async (url, category) => {
           });
         });
 
-        const promiseInfoResult = await promiseInfo;
+        const promiseCardResult = await promiseCard;
 
-        cardsInfo.push(promiseInfoResult);
+        // console.log(promiseCardResult.image, promiseCardResult.title);
+
+        // Masking img URL using Cloudinary
+
+        const changeImageURL = function () {
+          // if (!promiseCardResult.image) {
+          //   console.log(promiseCardResult.image, promiseCardResult.title);
+          //   return;
+          // }
+
+          const imageURL = `${promiseCardResult.image}`;
+          const imageTitle = `images/${promiseCardResult.title}`;
+
+          cloudinary.v2.uploader.upload(
+            imageURL,
+            { public_id: imageTitle },
+            function (error, result) {
+              if (!result) {
+                console.log("INCORRECT URL: ", promiseCardResult.image);
+                console.log("ERROR INFO: ", error);
+                return;
+              }
+
+              promiseCardResult.image = result.url;
+            }
+          );
+        };
+        changeImageURL();
+
+        cardsInfo.push(promiseCardResult);
       });
     }
     // console.log(cardsInfo[0]); // Checking output
@@ -147,17 +193,17 @@ const parseFranchiseInfo = async (url, category) => {
   }
 };
 
-// parseFranchiseInfo(`https://www.beboss.ru/franchise/search-c-auto`, "auto");
-
-Promise.all(
-  // Можно оптимизировать и убрать 15 вызовов если спарсить ссылки и получать их автоматически
-  [parseFranchiseInfo(`https://www.beboss.ru/franchise/search-c-auto`, "auto")]
+Promise.all([
+  parseFranchiseInfo(`https://www.beboss.ru/franchise/search-c-auto`, "auto"),
   // parseFranchiseInfo(
   //   `https://www.beboss.ru/franchise/search-c-children`,
   //   "children"
   // ),
   // parseFranchiseInfo(`https://www.beboss.ru/franchise/search-c-it`, "it"),
-  // parseFranchiseInfo(`https://www.beboss.ru/franchise/search-c-health`, "health"),
+  // parseFranchiseInfo(
+  //   `https://www.beboss.ru/franchise/search-c-health`,
+  //   "health"
+  // ),
   // parseFranchiseInfo(`https://www.beboss.ru/franchise/search-c-study`, "study"),
   // parseFranchiseInfo(
   //   `https://www.beboss.ru/franchise/search-c-entertainment`,
@@ -168,13 +214,22 @@ Promise.all(
   //   `https://www.beboss.ru/franchise/search-c-production`,
   //   "production"
   // ),
-  // parseFranchiseInfo(`https://www.beboss.ru/franchise/search-c-retail`, "retail"),
-  // parseFranchiseInfo(`https://www.beboss.ru/franchise/search-c-beauty`, "beauty"),
+  // parseFranchiseInfo(
+  //   `https://www.beboss.ru/franchise/search-c-retail`,
+  //   "retail"
+  // ),
+  // parseFranchiseInfo(
+  //   `https://www.beboss.ru/franchise/search-c-beauty`,
+  //   "beauty"
+  // ),
   // parseFranchiseInfo(
   //   `https://www.beboss.ru/franchise/search-c-construction`,
   //   "construction"
   // ),
-  // parseFranchiseInfo(`https://www.beboss.ru/franchise/search-c-b2b-services`, "b2b"),
+  // parseFranchiseInfo(
+  //   `https://www.beboss.ru/franchise/search-c-b2b-services`,
+  //   "b2b"
+  // ),
   // parseFranchiseInfo(
   //   `https://www.beboss.ru/franchise/search-c-services`,
   //   "services"
@@ -183,6 +238,6 @@ Promise.all(
   //   `https://www.beboss.ru/franchise/search-c-finances`,
   //   "finances"
   // ),
-).then(() => {
-  writeFile(cardsInfo);
+]).then((values) => {
+  writeFile(values);
 });
