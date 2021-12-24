@@ -2,30 +2,25 @@
 -- USERS INFORMATION
 -- /////////////////
 
-CREATE TABLE images(
+CREATE TABLE full_descriptions(
     id SERIAL PRIMARY KEY,
-    url text NOT NULL
-);
-
-CREATE TABLE global_descriptions(
-    id SERIAL PRIMARY KEY,
-    priceFranchise text NOT NULL,
-    mainInfo text NOT NULL,
-    companyDescr text NOT NULL,
-    franchDescr text NOT NULL,
-    supportDescr text NOT NULL,
-    buyersRequirements text NOT NULL,
-    quartersRequirements text NOT NULL
+    price_franchise text NOT NULL,
+    main_info text NOT NULL,
+    company_descr text NOT NULL,
+    franch_descr text NOT NULL,
+    support_descr text NOT NULL,
+    buyers_requirements text NOT NULL,
+    quarters_requirements text NOT NULL
 );
 
 CREATE TABLE cards_info( 
     id SERIAL PRIMARY KEY,
-    image INTEGER REFERENCES images(id),
+    image text NOT NULL,
     title text NOT NULL,
     description text NOT NULL,
     price text NOT NULL,
     category text NOT NULL,
-    global_description INTEGER REFERENCES global_descriptions(id)
+    full_description INTEGER REFERENCES full_descriptions(id)
 );   
 
 -- //////////
