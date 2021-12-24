@@ -6,6 +6,19 @@ import chee from "cheerio";
 const { load } = chee;
 import fs from "fs";
 
+// ELEPHANT SQL ***********************
+
+import pg from "pg";
+
+const conString =
+  "postgres://molwvggo:WGmorLxYyBWhBRvHQ0JQcYiXubolMKUu@abul.db.elephantsql.com/molwvggo";
+
+const client = new pg.Client(conString);
+
+client.connect();
+
+// ************************************
+
 // CLOUDINARY *************************
 
 import cloudinary from "cloudinary";
@@ -18,28 +31,26 @@ cloudinary.config({
 
 // ***********************************
 
-const cardsInfo = [];
-
 function numFromStr(str) {
   let prices = str.split("—").map((s) => s.replace(/\D/g, ""));
   return prices.join(" — ");
 }
 
-const writeFile = (writeData) => {
-  fs.writeFile(
-    "./cardsInfo.json",
-
-    `${JSON.stringify(...writeData, null, 2)}`,
-    (err) => {
-      if (err) throw err;
-      console.log("Data has been replaced!");
-    }
-  );
-};
+// const writeFile = (writeData) => {
+//   fs.appendFile(
+//     "./cardsInfo.json",
+//     `${JSON.stringify(writeData, null, 2)},`,
+//     (err) => {
+//       if (err) console.log(err);
+//       console.log("Data has been replaced!");
+//     }
+//   );
+// };
 
 ////////////////////////////////////////////////////////////////////
 
 // CARDS PARSING
+const cardsInfo = [];
 
 const parseFranchiseInfo = async (url, category) => {
   try {
@@ -193,51 +204,93 @@ const parseFranchiseInfo = async (url, category) => {
   }
 };
 
-Promise.all([
-  parseFranchiseInfo(`https://www.beboss.ru/franchise/search-c-auto`, "auto"),
-  // parseFranchiseInfo(
-  //   `https://www.beboss.ru/franchise/search-c-children`,
-  //   "children"
-  // ),
-  // parseFranchiseInfo(`https://www.beboss.ru/franchise/search-c-it`, "it"),
-  // parseFranchiseInfo(
-  //   `https://www.beboss.ru/franchise/search-c-health`,
-  //   "health"
-  // ),
-  // parseFranchiseInfo(`https://www.beboss.ru/franchise/search-c-study`, "study"),
-  // parseFranchiseInfo(
-  //   `https://www.beboss.ru/franchise/search-c-entertainment`,
-  //   "entertainment"
-  // ),
-  // parseFranchiseInfo(`https://www.beboss.ru/franchise/search-c-food`, "food"),
-  // parseFranchiseInfo(
-  //   `https://www.beboss.ru/franchise/search-c-production`,
-  //   "production"
-  // ),
-  // parseFranchiseInfo(
-  //   `https://www.beboss.ru/franchise/search-c-retail`,
-  //   "retail"
-  // ),
-  // parseFranchiseInfo(
-  //   `https://www.beboss.ru/franchise/search-c-beauty`,
-  //   "beauty"
-  // ),
-  // parseFranchiseInfo(
-  //   `https://www.beboss.ru/franchise/search-c-construction`,
-  //   "construction"
-  // ),
-  // parseFranchiseInfo(
-  //   `https://www.beboss.ru/franchise/search-c-b2b-services`,
-  //   "b2b"
-  // ),
-  // parseFranchiseInfo(
-  //   `https://www.beboss.ru/franchise/search-c-services`,
-  //   "services"
-  // ),
-  // parseFranchiseInfo(
-  //   `https://www.beboss.ru/franchise/search-c-finances`,
-  //   "finances"
-  // ),
-]).then((values) => {
-  writeFile(values);
+const sources = [
+  "auto",
+  "children",
+  "it",
+  // "health",
+  // "study",
+  // "entertainment",
+  // "food",
+  // "production",
+  // "retail",
+  // "beauty",
+  // "construction",
+  // "b2b-services",
+  // "services",
+  // "finances",
+];
+
+sources.forEach(async (source) => {
+  const results = await parseFranchiseInfo(
+    `https://www.beboss.ru/franchise/search-c-${source}`,
+    `${source}`
+  );
+
+  results.forEach(async (result, id) => {
+    const image = await result.image;
+    const title = await result.title;
+    const description = await result.description;
+    const price = await result.price;
+    const category = await result.category;
+    // const fullDescription = result.fullDescription;
+
+    client.query(
+      "INSERT INTO cards_info(image, title, description, price, category) VALUES($1, $2, $3, $4, $5) RETURNING *;",
+      [image, title, description, price, category]
+    );
+
+    console.log(result.category, id, "sent to the DB");
+  });
 });
+
+client.end();
+
+// Promise.all([
+//   parseFranchiseInfo(`https://www.beboss.ru/franchise/search-c-auto`, "auto"),
+//   parseFranchiseInfo(
+//     `https://www.beboss.ru/franchise/search-c-children`,
+//     "children"
+//   ),
+//   parseFranchiseInfo(`https://www.beboss.ru/franchise/search-c-it`, "it"),
+//   parseFranchiseInfo(
+//     `https://www.beboss.ru/franchise/search-c-health`,
+//     "health"
+//   ),
+//   parseFranchiseInfo(`https://www.beboss.ru/franchise/search-c-study`, "study"),
+//   parseFranchiseInfo(
+//     `https://www.beboss.ru/franchise/search-c-entertainment`,
+//     "entertainment"
+//   ),
+//   parseFranchiseInfo(`https://www.beboss.ru/franchise/search-c-food`, "food"),
+//   parseFranchiseInfo(
+//     `https://www.beboss.ru/franchise/search-c-production`,
+//     "production"
+//   ),
+//   parseFranchiseInfo(
+//     `https://www.beboss.ru/franchise/search-c-retail`,
+//     "retail"
+//   ),
+//   parseFranchiseInfo(
+//     `https://www.beboss.ru/franchise/search-c-beauty`,
+//     "beauty"
+//   ),
+//   parseFranchiseInfo(
+//     `https://www.beboss.ru/franchise/search-c-construction`,
+//     "construction"
+//   ),
+//   parseFranchiseInfo(
+//     `https://www.beboss.ru/franchise/search-c-b2b-services`,
+//     "b2b-services"
+//   ),
+//   parseFranchiseInfo(
+//     `https://www.beboss.ru/franchise/search-c-services`,
+//     "services"
+//   ),
+//   parseFranchiseInfo(
+//     `https://www.beboss.ru/franchise/search-c-finances`,
+//     "finances"
+//   ),
+// ]).then((values) => {
+//   writeFile(values);
+// });
