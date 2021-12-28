@@ -90,7 +90,7 @@ const parseFranchiseInfo = async (url, category) => {
         });
 
         // Masking img URL using Cloudinary
-        // changeImageURL(promiseCard);
+        changeImageURL(promiseCard);
 
         const promiseCardResult = await promiseCard;
 
