@@ -4,7 +4,6 @@ import ax from "axios";
 const { get } = ax;
 import chee from "cheerio";
 const { load } = chee;
-import fs from "fs";
 
 // ELEPHANT SQL ***********************
 
@@ -36,33 +35,17 @@ function numFromStr(str) {
   return prices.join(" — ");
 }
 
-// const writeFile = (writeData) => {
-//   fs.appendFile(
-//     "./cardsInfo.json",
-//     `${JSON.stringify(writeData, null, 2)},`,
-//     (err) => {
-//       if (err) console.log(err);
-//       console.log("Data has been replaced!");
-//     }
-//   );
-// };
-
-/////////////////////////////////////////////////////////////////////
-
+///////////////////////////////////////////////////////////////////////
 // CARDS PARSING
+
 const cardsInfo = [];
 
 const parseFranchiseInfo = async (url, category) => {
   try {
-    // В этот массив попадают объекты сформированные в цикле
     const getHTML = async (url) => {
-      try {
-        const { data } = await get(url);
+      const { data } = await get(url);
 
-        return load(data);
-      } catch (error) {
-        console.log("ERR GET HTML: ", error);
-      }
+      return load(data);
     };
 
     const $ = await getHTML(`${url}`);
@@ -73,66 +56,9 @@ const parseFranchiseInfo = async (url, category) => {
       const selector = await getHTML(`${url}-p-${currentPage}`);
 
       selector(".tdb-view__item").each(async (i, element) => {
-        // На каждой итерации создается объект с данными о франшизе
-
-        ///////////////////////////////////////////////////////////////////////////////////
         // CARDS DESCRIPTION PARSING
-        const parseDescription = async (url) => {
-          try {
-            // В этот массив попадают объекты сформированные в цикле
-            const getHTML = async (url) => {
-              try {
-                const { data } = await get(url);
 
-                return load(data);
-              } catch (error) {
-                console.log(error);
-              }
-            };
-
-            const $ = await getHTML(`${url}`);
-
-            const selector = await getHTML(`${url}`);
-
-            let franchiseData = [];
-
-            selector(".fr-page").each(async (i, el) => {
-              const promiseDescription = await new Promise(
-                (resolve, reject) => {
-                  return resolve({
-                    priceFranchise: selector(el)
-                      .find(".fr-page__price-inner")
-                      .html(),
-                    mainInfo: selector(el)
-                      .find(".fr-page__basic-info-box")
-                      .html(),
-                    companyDescr: selector(el)
-                      .find("#company_descr_tpl")
-                      .html(),
-                    franchDescr: selector(el).find("#franch_descr_tpl").html(),
-                    supportDescr: selector(el).find("#support_descr").html(),
-                    buyersRequirements: selector(el)
-                      .find("#buyers_requirements_tpl")
-                      .html(),
-                    quartersRequirements: selector(el)
-                      .find("#quarters_requirements_tpl")
-                      .html(),
-                  });
-                }
-              );
-
-              const promiseDescriptionResult = await promiseDescription;
-
-              franchiseData.push(promiseDescriptionResult);
-            });
-
-            return franchiseData;
-          } catch (error) {
-            console.log(error);
-          }
-        };
-
-        ///////////////////////////////////////////////////////////////////////////////////////////
+        await parseDescription(url);
 
         const promiseCard = await new Promise(async (resolve, reject) => {
           const getImage = selector(element)
@@ -163,36 +89,10 @@ const parseFranchiseInfo = async (url, category) => {
           });
         });
 
-        const promiseCardResult = await promiseCard;
-
-        // console.log(promiseCardResult.image, promiseCardResult.title);
-
         // Masking img URL using Cloudinary
+        // changeImageURL(promiseCard);
 
-        const changeImageURL = function () {
-          // if (!promiseCardResult.image) {
-          //   console.log(promiseCardResult.image, promiseCardResult.title);
-          //   return;
-          // }
-
-          const imageURL = `${promiseCardResult.image}`;
-          const imageTitle = `images/${promiseCardResult.title}`;
-
-          cloudinary.v2.uploader.upload(
-            imageURL,
-            { public_id: imageTitle },
-            function (error, result) {
-              if (!result) {
-                console.log("INCORRECT URL: ", promiseCardResult.image);
-                console.log("ERROR INFO: ", error);
-                return;
-              }
-
-              promiseCardResult.image = result.url;
-            }
-          );
-        };
-        changeImageURL();
+        const promiseCardResult = await promiseCard;
 
         cardsInfo.push(promiseCardResult);
       });
@@ -204,9 +104,90 @@ const parseFranchiseInfo = async (url, category) => {
   }
 };
 
+///////////////////////////////////////////////////////////////////////
+// PARSING DESCRIPTION
+
+const parseDescription = async (url) => {
+  try {
+    // В этот массив попадают объекты сформированные в цикле
+    const getHTML = async (url) => {
+      try {
+        const { data } = await get(url);
+
+        return load(data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    const $ = await getHTML(`${url}`);
+
+    const selector = await getHTML(`${url}`);
+
+    let franchiseData = [];
+
+    selector(".fr-page").each(async (i, el) => {
+      const promiseDescription = await new Promise((resolve, reject) => {
+        return resolve({
+          priceFranchise: selector(el).find(".fr-page__price-inner").text(),
+          mainInfo: selector(el).find(".fr-page__basic-info-box").text(),
+          companyDescr: selector(el).find("#company_descr_tpl").text(),
+          franchDescr: selector(el).find("#franch_descr_tpl").text(),
+          supportDescr: selector(el).find("#support_descr").text(),
+          buyersRequirements: selector(el)
+            .find("#buyers_requirements_tpl")
+            .text(),
+          quartersRequirements: selector(el)
+            .find("#quarters_requirements_tpl")
+            .text(),
+        });
+      });
+
+      const promiseDescriptionResult = await promiseDescription;
+
+      franchiseData.push(promiseDescriptionResult);
+    });
+
+    return franchiseData;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+///////////////////////////////////////////////////////////////////////
+// PUSHING IMAGES TO CLOUDINARY
+
+const changeImageURL = function (promiseCard) {
+  // if (!promiseCardResult.image) {
+  //   console.log(promiseCardResult.image, promiseCardResult.title);
+  //   return;
+  // }
+
+  const imageURL = `${promiseCard.image}`;
+  const imageTitle = `images/${promiseCard.title}`;
+
+  cloudinary.v2.uploader.upload(
+    imageURL,
+    { public_id: imageTitle },
+    function (error, result) {
+      if (!result) {
+        console.log("CATEGORY: ", promiseCard.category);
+        console.log("TITLE: ", imageTitle);
+        console.log("INCORRECT URL: ", promiseCard.image);
+        console.log("ERROR INFO: ", error);
+        return;
+      }
+
+      promiseCard.image = result.url;
+    }
+  );
+};
+
+///////////////////////////////////////////////////////////////////////
+
 const sources = [
   "auto",
-  "children",
+  // "children",
   "it",
   // "health",
   // "study",
@@ -221,76 +202,62 @@ const sources = [
   // "finances",
 ];
 
-sources.forEach(async (source) => {
-  const results = await parseFranchiseInfo(
-    `https://www.beboss.ru/franchise/search-c-${source}`,
-    `${source}`
-  );
-
-  results.forEach(async (result, id) => {
-    const image = await result.image;
-    const title = await result.title;
-    const description = await result.description;
-    const price = await result.price;
-    const category = await result.category;
-    // const fullDescription = result.fullDescription;
-
-    client.query(
-      "INSERT INTO cards_info(image, title, description, price, category) VALUES($1, $2, $3, $4, $5) RETURNING *;",
-      [image, title, description, price, category]
+const getCategories = async function () {
+  sources.forEach(async (source) => {
+    const results = await parseFranchiseInfo(
+      `https://www.beboss.ru/franchise/search-c-${source}`,
+      `${source}`
     );
 
-    console.log(result.category, id, "sent to the DB");
+    insertToDataBase(results);
   });
-});
+};
 
-client.end();
+const insertToDataBase = function (results) {
+  results.forEach((result, id) => {
+    const image = result.image;
+    const title = result.title;
+    const description = result.description;
+    const price = result.price;
+    const category = result.category;
 
-// Promise.all([
-//   parseFranchiseInfo(`https://www.beboss.ru/franchise/search-c-auto`, "auto"),
-//   parseFranchiseInfo(
-//     `https://www.beboss.ru/franchise/search-c-children`,
-//     "children"
-//   ),
-//   parseFranchiseInfo(`https://www.beboss.ru/franchise/search-c-it`, "it"),
-//   parseFranchiseInfo(
-//     `https://www.beboss.ru/franchise/search-c-health`,
-//     "health"
-//   ),
-//   parseFranchiseInfo(`https://www.beboss.ru/franchise/search-c-study`, "study"),
-//   parseFranchiseInfo(
-//     `https://www.beboss.ru/franchise/search-c-entertainment`,
-//     "entertainment"
-//   ),
-//   parseFranchiseInfo(`https://www.beboss.ru/franchise/search-c-food`, "food"),
-//   parseFranchiseInfo(
-//     `https://www.beboss.ru/franchise/search-c-production`,
-//     "production"
-//   ),
-//   parseFranchiseInfo(
-//     `https://www.beboss.ru/franchise/search-c-retail`,
-//     "retail"
-//   ),
-//   parseFranchiseInfo(
-//     `https://www.beboss.ru/franchise/search-c-beauty`,
-//     "beauty"
-//   ),
-//   parseFranchiseInfo(
-//     `https://www.beboss.ru/franchise/search-c-construction`,
-//     "construction"
-//   ),
-//   parseFranchiseInfo(
-//     `https://www.beboss.ru/franchise/search-c-b2b-services`,
-//     "b2b-services"
-//   ),
-//   parseFranchiseInfo(
-//     `https://www.beboss.ru/franchise/search-c-services`,
-//     "services"
-//   ),
-//   parseFranchiseInfo(
-//     `https://www.beboss.ru/franchise/search-c-finances`,
-//     "finances"
-//   ),
-// ]).then((values) => {
-//   writeFile(values);
-// });
+    const fullDescription = result.fullDescription[0];
+    const uniqueID = Math.trunc(Math.random() * 1000000);
+    const priceFranchise = fullDescription.priceFranchise;
+    const mainInfo = fullDescription.mainInfo;
+    const companyDescr = fullDescription.companyDescr;
+    const franchDescr = fullDescription.franchDescr;
+    const supportDescr = fullDescription.supportDescr;
+    const buyersRequirements = fullDescription.buyersRequirements;
+    const quartersRequirements = fullDescription.quartersRequirements;
+
+    client.query(
+      "INSERT INTO cards_info(id, image, title, description, price, category) VALUES($1, $2, $3, $4, $5, $6) RETURNING *;",
+      [uniqueID, image, title, description, price, category],
+      (err, res) => {
+        if (err) console.log(err.stack);
+      }
+    );
+
+    client.query(
+      "INSERT INTO full_descriptions(card_id, price_franchise, main_info, company_descr, franch_descr, support_descr, buyers_requirements, quarters_requirements) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;",
+      [
+        uniqueID,
+        priceFranchise,
+        mainInfo,
+        companyDescr,
+        franchDescr,
+        supportDescr,
+        buyersRequirements,
+        quartersRequirements,
+      ],
+      (err, res) => {
+        if (err) console.log(err.stack);
+      }
+    );
+
+    console.log(result.category, id, "was sent to the DB");
+  });
+};
+
+getCategories();
