@@ -1,44 +1,50 @@
-import cloudinary from "cloudinary";
+// import { v4 as uuidv4 } from "uuid";
 
-cloudinary.config({
-  cloud_name: "dwwijk4ok",
-  api_key: "764797469776175",
-  api_secret: "htxBCYfRJOW070qt2PjK2Hyj01I",
-  secure: true,
-});
+// const id = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-const imageURL = [
-  {
-    image:
-      "https://www.beboss.ru/listings/fr/1824/photos/xmd_frTzVQ84.jpg.pagespeed.ic.O6kB9dFhoH.jpg",
-    title: "AAA - error",
-  },
-  {
-    image:
-      "https://www.beboss.ru/listings/fr/3825/photos/xmd_frfTBku2.jpg.pagespeed.ic.v361cCsjB_.jpg",
+// id.forEach((hui) => console.log(uuidv4()));
 
-    title: "BBB",
-  },
-  {
-    image:
-      "https://www.beboss.ru/listings/fr/3829/photos/xmd_frq3ZvQw.jpeg.pagespeed.ic.foxmNvBSpe.jpg",
+// import cloudinary from "cloudinary";
 
-    title: "CCC",
-  },
-];
+// cloudinary.config({
+//   cloud_name: "dwwijk4ok",
+//   api_key: "764797469776175",
+//   api_secret: "htxBCYfRJOW070qt2PjK2Hyj01I",
+//   secure: true,
+// });
 
-imageURL.forEach(function (el) {
-  const url = el.image;
-  const imgTitle = el.title;
+// const imageURL = [
+//   {
+//     image:
+//       "https://www.beboss.ru/listings/fr/1824/photos/xmd_frTzVQ84.jpg.pagespeed.ic.O6kB9dFhoH.jpg",
+//     title: "AAA - error",
+//   },
+//   {
+//     image:
+//       "https://www.beboss.ru/listings/fr/3825/photos/xmd_frfTBku2.jpg.pagespeed.ic.v361cCsjB_.jpg",
 
-  cloudinary.v2.uploader.upload(
-    el.image,
-    { public_id: `images/${imgTitle}` },
-    function (error, result) {
-      console.log("URL: ", result.url, error);
-    }
-  );
-});
+//     title: "BBB",
+//   },
+//   {
+//     image:
+//       "https://www.beboss.ru/listings/fr/3829/photos/xmd_frq3ZvQw.jpeg.pagespeed.ic.foxmNvBSpe.jpg",
+
+//     title: "CCC",
+//   },
+// ];
+
+// imageURL.forEach(function (el) {
+//   const url = el.image;
+//   const imgTitle = el.title;
+
+//   cloudinary.v2.uploader.upload(
+//     el.image,
+//     { public_id: `images/${imgTitle}` },
+//     function (error, result) {
+//       console.log("URL: ", result.url, error);
+//     }
+//   );
+// });
 
 // cloudinary.v2.uploader.upload(
 //   "https://www.beboss.ru/listings/fr/3402/photos/xmd_frXbwTTH.jpg.pagespeed.ic.m9tyeJ4JtR.jpg",

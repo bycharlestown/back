@@ -3,7 +3,7 @@
 -- /////////////////
 
 CREATE TABLE cards_info( 
-    id integer PRIMARY KEY,
+    id varchar(80) PRIMARY KEY,
     image text NOT NULL,
     title text NOT NULL,
     description text NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE cards_info(
 );   
 
 CREATE TABLE full_descriptions(
-    card_id integer references cards_info(id),
+    card_id varchar(80) references cards_info(id),
     price_franchise text,
     main_info text,
     company_descr text,

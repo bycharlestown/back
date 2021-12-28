@@ -4,6 +4,7 @@ import ax from "axios";
 const { get } = ax;
 import chee from "cheerio";
 const { load } = chee;
+import { v4 as uuidv4 } from "uuid";
 
 // ELEPHANT SQL ***********************
 
@@ -97,7 +98,7 @@ const parseFranchiseInfo = async (url, category) => {
         cardsInfo.push(promiseCardResult);
       });
     }
-    // console.log(cardsInfo[0]); // Checking output
+    console.log("THE CATEGORY WAS PARSED"); // Checking output
     return cardsInfo;
   } catch (error) {
     console.log(error);
@@ -129,17 +130,34 @@ const parseDescription = async (url) => {
     selector(".fr-page").each(async (i, el) => {
       const promiseDescription = await new Promise((resolve, reject) => {
         return resolve({
-          priceFranchise: selector(el).find(".fr-page__price-inner").text(),
-          mainInfo: selector(el).find(".fr-page__basic-info-box").text(),
-          companyDescr: selector(el).find("#company_descr_tpl").text(),
-          franchDescr: selector(el).find("#franch_descr_tpl").text(),
-          supportDescr: selector(el).find("#support_descr").text(),
+          priceFranchise: selector(el)
+            .find(".fr-page__price-inner")
+            .text()
+            ?.replace(/\n/, ""),
+          mainInfo: selector(el)
+            .find(".fr-page__basic-info-box")
+            .text()
+            ?.replace(/\n/, ""),
+          companyDescr: selector(el)
+            .find("#company_descr_tpl")
+            .text()
+            ?.replace(/\n/, ""),
+          franchDescr: selector(el)
+            .find("#franch_descr_tpl")
+            .text()
+            ?.replace(/\n/, ""),
+          supportDescr: selector(el)
+            .find("#support_descr")
+            .text()
+            ?.replace(/\n/, ""),
           buyersRequirements: selector(el)
             .find("#buyers_requirements_tpl")
-            .text(),
+            .text()
+            ?.replace(/\n/, ""),
           quartersRequirements: selector(el)
             .find("#quarters_requirements_tpl")
-            .text(),
+            .text()
+            ?.replace(/\n/, ""),
         });
       });
 
@@ -187,30 +205,31 @@ const changeImageURL = function (promiseCard) {
 
 const sources = [
   "auto",
-  // "children",
+  "children",
   "it",
-  // "health",
-  // "study",
-  // "entertainment",
-  // "food",
-  // "production",
-  // "retail",
-  // "beauty",
-  // "construction",
-  // "b2b-services",
-  // "services",
-  // "finances",
+  "health",
+  "study",
+  "entertainment",
+  "food",
+  "production",
+  "retail",
+  "beauty",
+  "construction",
+  "b2b-services",
+  "services",
+  "finances",
 ];
 
 const getCategories = async function () {
-  sources.forEach(async (source) => {
+  b;
+  for (const source of sources) {
     const results = await parseFranchiseInfo(
       `https://www.beboss.ru/franchise/search-c-${source}`,
       `${source}`
     );
-
     insertToDataBase(results);
-  });
+    console.log(source.toUpperCase(), " category was parsed & pushed into DB");
+  }
 };
 
 const insertToDataBase = function (results) {
@@ -222,7 +241,7 @@ const insertToDataBase = function (results) {
     const category = result.category;
 
     const fullDescription = result.fullDescription[0];
-    const uniqueID = Math.trunc(Math.random() * 1000000);
+    const uniqueID = uuidv4();
     const priceFranchise = fullDescription.priceFranchise;
     const mainInfo = fullDescription.mainInfo;
     const companyDescr = fullDescription.companyDescr;
