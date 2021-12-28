@@ -57,10 +57,6 @@ const parseFranchiseInfo = async (url, category) => {
       const selector = await getHTML(`${url}-p-${currentPage}`);
 
       selector(".tdb-view__item").each(async (i, element) => {
-        // CARDS DESCRIPTION PARSING
-
-        await parseDescription(url);
-
         const promiseCard = await new Promise(async (resolve, reject) => {
           const getImage = selector(element)
             .find("img.tdb-view__picture")
