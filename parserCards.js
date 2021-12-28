@@ -41,7 +41,7 @@ function numFromStr(str) {
 
 const cardsInfo = [];
 
-const parseFranchiseInfo = async (url, category) => {
+const parseFranchiseInfo = async (url) => {
   try {
     const getHTML = async (url) => {
       const { data } = await get(url);
@@ -57,6 +57,8 @@ const parseFranchiseInfo = async (url, category) => {
       const selector = await getHTML(`${url}-p-${currentPage}`);
 
       selector(".tdb-view__item").each(async (i, element) => {
+        // CARDS DESCRIPTION PARSING
+
         const promiseCard = await new Promise(async (resolve, reject) => {
           const getImage = selector(element)
             .find("img.tdb-view__picture")
@@ -65,7 +67,7 @@ const parseFranchiseInfo = async (url, category) => {
             ? `https://www.beboss.ru${selector(element)
                 .find("img.tdb-view__picture")
                 .attr("src")}`
-            : "C:/Users/macks/Traffic House/back/Yellow_icon.svg.png";
+            : "https://res.cloudinary.com/dwwijk4ok/image/upload/v1640696711/NOT%20DELETE/Yellow_icon.svg_oh0yxs.png";
 
           return resolve({
             image: getImage,
@@ -78,8 +80,7 @@ const parseFranchiseInfo = async (url, category) => {
                 .find("p.fr-card-list__price > span:nth-child(2)")
                 .text()
             ),
-            category: category,
-            // link: selector(element).find("a.stretched-link").attr("href"),
+            category: "category",
             fullDescription: await parseDescription(
               selector(element).find(".stretched-link").attr("href")
             ),
@@ -94,7 +95,7 @@ const parseFranchiseInfo = async (url, category) => {
         cardsInfo.push(promiseCardResult);
       });
     }
-    console.log("THE CATEGORY WAS PARSED"); // Checking output
+
     return cardsInfo;
   } catch (error) {
     console.log(error);
@@ -106,7 +107,6 @@ const parseFranchiseInfo = async (url, category) => {
 
 const parseDescription = async (url) => {
   try {
-    // В этот массив попадают объекты сформированные в цикле
     const getHTML = async (url) => {
       try {
         const { data } = await get(url);
@@ -129,11 +129,11 @@ const parseDescription = async (url) => {
           priceFranchise: selector(el)
             .find(".fr-page__price-inner")
             .text()
-            ?.replace(/\n/, ""),
+            ?.replace(/(\n)||(&nbsp;)/, ""),
           mainInfo: selector(el)
             .find(".fr-page__basic-info-box")
             .text()
-            ?.replace(/\n/, ""),
+            ?.replace(/(\n)||(&nbsp;)/, ""),
           companyDescr: selector(el)
             .find("#company_descr_tpl")
             .text()
@@ -172,11 +172,6 @@ const parseDescription = async (url) => {
 // PUSHING IMAGES TO CLOUDINARY
 
 const changeImageURL = function (promiseCard) {
-  // if (!promiseCardResult.image) {
-  //   console.log(promiseCardResult.image, promiseCardResult.title);
-  //   return;
-  // }
-
   const imageURL = `${promiseCard.image}`;
   const imageTitle = `images/${promiseCard.title}`;
 
@@ -199,32 +194,37 @@ const changeImageURL = function (promiseCard) {
 
 ///////////////////////////////////////////////////////////////////////
 
-const sources = [
-  "auto",
-  "children",
-  "it",
-  "health",
-  "study",
-  "entertainment",
-  "food",
-  "production",
-  "retail",
-  "beauty",
-  "construction",
-  "b2b-services",
-  "services",
-  "finances",
-];
+// const sources = [
+// "auto", //61
+//   "children", //200
+//   "it", //110
+//   "health", //43
+//   "study", //143
+//   "entertainment", 106
+//   "food", //262
+//   "production", //75
+//   "retail", //476
+//   "beauty", //136
+//   "construction", //42
+//   "b2b-services", //173
+//   "services", //297
+//   "finances", //51
+// ];
 
-const getCategories = async function () {
-  b;
-  for (const source of sources) {
+const parseData = async function () {
+  try {
+    console.log("THE PARSER WAS STARTED");
+
     const results = await parseFranchiseInfo(
-      `https://www.beboss.ru/franchise/search-c-${source}`,
-      `${source}`
+      "https://www.beboss.ru/franchise/search"
     );
     insertToDataBase(results);
-    console.log(source.toUpperCase(), " category was parsed & pushed into DB");
+  } catch (error) {
+    console.log(error);
+  } finally {
+    console.log("THE PARSER WAS FINISHED");
+
+    client.end();
   }
 };
 
@@ -275,4 +275,4 @@ const insertToDataBase = function (results) {
   });
 };
 
-getCategories();
+export default parseData;
