@@ -4,6 +4,7 @@ import ax from "axios";
 import chee from "cheerio";
 import { v4 as uuidv4 } from "uuid";
 import pg from "pg";
+import cloudinary from "cloudinary";
 
 const { get } = ax;
 const { load } = chee;
@@ -16,8 +17,6 @@ const conString =
 const client = new pg.Client(conString);
 
 // CLOUDINARY *************************
-
-import cloudinary from "cloudinary";
 
 cloudinary.config({
   cloud_name: "dwwijk4ok",
