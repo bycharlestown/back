@@ -15,8 +15,6 @@ const conString =
 
 const client = new pg.Client(conString);
 
-client.connect();
-
 // CLOUDINARY *************************
 
 import cloudinary from "cloudinary";
@@ -199,6 +197,8 @@ class ParserCards {
     try {
       console.log("THE PARSER WAS STARTED");
 
+      client.connect();
+
       const results = await this.parseFranchiseInfo(
         "https://www.beboss.ru/franchise/search"
       );
@@ -208,6 +208,8 @@ class ParserCards {
       console.log(error);
     } finally {
       console.log("THE PARSER WAS FINISHED");
+
+      client.end();
       return;
     }
   }
