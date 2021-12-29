@@ -2,7 +2,7 @@ import express, { json } from "express";
 import https from "https";
 import fs from "fs";
 import parserRouter from "./routes/parser.route.js";
-import parseData from "./parsercards.js";
+import ParserCards from "./parserCards.js";
 
 // MIDDLEWARE
 const app = express();
@@ -20,11 +20,7 @@ const credentials = { key: privateKey, cert: certificate };
 const httpsServer = https.createServer(credentials, app);
 
 // PARSING CARDS
-parseData();
-
-setInterval(() => {
-  parseData();
-}, time);
+ParserCards.parseData();
 
 // SERVER SOURCES
 app.use("/api", parserRouter);

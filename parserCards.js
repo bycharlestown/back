@@ -208,7 +208,7 @@ class ParserCards {
     } finally {
       console.log("THE PARSER WAS FINISHED");
 
-      client.end();
+      // client.end();
       return;
     }
   }
@@ -269,6 +269,4 @@ class ParserCards {
   }
 }
 
-const parsing = new ParserCards();
-
-parsing.parseData();
+export default new ParserCards();
