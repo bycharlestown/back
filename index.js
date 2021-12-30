@@ -3,11 +3,20 @@ import https from "https";
 import fs from "fs";
 import parserRouter from "./routes/parser.route.js";
 import ParserCards from "./parserCards.js";
+import cors from "cors";
 
 // MIDDLEWARE
 const app = express();
 
 app.use(express.json());
+
+const corsOptions = {
+  origin: "*",
+  credentials: true,
+  optionSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
 
 // EXTRA VARIABLES
 const time = 1000 * 60 * 60 * 24 * 7; // EVERY 7 DAYS
@@ -20,10 +29,10 @@ const credentials = { key: privateKey, cert: certificate };
 const httpsServer = https.createServer(credentials, app);
 
 // PARSING CARDS
-ParserCards.parseData();
+// ParserCards.parseData();
 
 // SERVER SOURCES
-app.use("/api", parserRouter);
+app.use("/api", parserRouter); // https://localhost:5000/api/parsing_info
 
 // START SERVER
 httpsServer.listen(PORT, () => {

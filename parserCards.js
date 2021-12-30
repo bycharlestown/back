@@ -1,5 +1,3 @@
-/* https://www.youtube.com/watch?v=dljI-PgYSek&t=8s */
-
 import ax from "axios";
 import chee from "cheerio";
 import { v4 as uuidv4 } from "uuid";
