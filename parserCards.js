@@ -75,7 +75,6 @@ class ParserCards {
                   .find("p.fr-card-list__price > span:nth-child(2)")
                   .text()
               ),
-              category: "category",
               fullDescription: await this.parseDescription(
                 selector(element).find(".stretched-link").attr("href")
               ),
@@ -121,6 +120,10 @@ class ParserCards {
       selector(".fr-page").each(async (i, el) => {
         const promiseDescription = await new Promise((resolve, reject) => {
           return resolve({
+            category: selector(el)
+              .find("li.breadcrumb-item:nth-child(2) > a") // Нет классов, зацепился через дочерний элемент
+              .attr("href")
+              .replace(/.*?-c-/gi, ""),
             priceFranchise: selector(el)
               .find(".fr-page__price-inner")
               .text()
@@ -266,5 +269,7 @@ class ParserCards {
     });
   }
 }
-
-export default new ParserCards();
+let start = new ParserCards();
+start.parseData();
+// export default new ParserCards();
+// ParserCards.parseData();
