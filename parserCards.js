@@ -117,11 +117,11 @@ class ParserCards {
 
       let franchiseData = [];
 
-      selector(".fr-page").each(async (i, el) => {
+      selector(".main").each(async (i, el) => {
         const promiseDescription = await new Promise((resolve, reject) => {
           return resolve({
             category: selector(el)
-              .find("li.breadcrumb-item:nth-child(2) > a")
+              .find("ul.breadcrumb-new > li:nth-child(2) > a")
               .attr("href")
               .replace(/.*?-c-/gi, ""),
             priceFranchise: selector(el)
@@ -178,7 +178,6 @@ class ParserCards {
       { public_id: imageTitle },
       function (error, result) {
         if (!result) {
-          console.log("CATEGORY: ", promiseCard.category);
           console.log("TITLE: ", imageTitle);
           console.log("INCORRECT URL: ", promiseCard.image);
           console.log("ERROR INFO: ", error);
@@ -265,7 +264,7 @@ class ParserCards {
       } catch (error) {
         console.log(error);
       } finally {
-        console.log(result.category, id, "was sent to the DB");
+        console.log(fullDescription.category, id, "was sent to the DB");
       }
     });
   }
