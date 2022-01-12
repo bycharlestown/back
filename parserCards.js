@@ -121,7 +121,7 @@ class ParserCards {
         const promiseDescription = await new Promise((resolve, reject) => {
           return resolve({
             category: selector(el)
-              .find("li.breadcrumb-item:nth-child(2) > a") // Нет классов, зацепился через дочерний элемент
+              .find("li.breadcrumb-item:nth-child(2) > a")
               .attr("href")
               .replace(/.*?-c-/gi, ""),
             priceFranchise: selector(el)
@@ -224,10 +224,10 @@ class ParserCards {
         const title = result.title;
         const description = result.description;
         const price = result.price;
-        const category = result.category;
 
         const fullDescription = result.fullDescription[0];
         const uniqueID = uuidv4();
+        const category = fullDescription.category;
         const priceFranchise = fullDescription.priceFranchise;
         const mainInfo = fullDescription.mainInfo;
         const companyDescr = fullDescription.companyDescr;
@@ -237,17 +237,18 @@ class ParserCards {
         const quartersRequirements = fullDescription.quartersRequirements;
 
         client.query(
-          "INSERT INTO cards_info(id, image, title, description, price, category) VALUES($1, $2, $3, $4, $5, $6) RETURNING *;",
-          [uniqueID, image, title, description, price, category],
+          "INSERT INTO cards_info(id, image, title, description, price) VALUES($1, $2, $3, $4, $5) RETURNING *;",
+          [uniqueID, image, title, description, price],
           (err, res) => {
             if (err) console.log("Query cards_info ERROR: ", title, err.stack);
           }
         );
 
         client.query(
-          "INSERT INTO full_descriptions(card_id, price_franchise, main_info, company_descr, franch_descr, support_descr, buyers_requirements, quarters_requirements) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;",
+          "INSERT INTO full_descriptions(card_id, category, price_franchise, main_info, company_descr, franch_descr, support_descr, buyers_requirements, quarters_requirements) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *;",
           [
             uniqueID,
+            category,
             priceFranchise,
             mainInfo,
             companyDescr,
@@ -269,7 +270,8 @@ class ParserCards {
     });
   }
 }
+
+// export default new ParserCards();
+
 let start = new ParserCards();
 start.parseData();
-// export default new ParserCards();
-// ParserCards.parseData();
