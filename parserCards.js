@@ -30,9 +30,14 @@ class ParserCards {
   ///////////////////////////////////////////////////////////////////////
   // PAGINATION FOR PARSING
 
-  numFromStr(str) {
-    let prices = str.split("—").map((s) => s.replace(/\D/g, ""));
-    return prices.join(" — ");
+  numFromStr(price, deltaPrice) {
+    let prices = price.split("—").map((s) => s.replace(/\D/g, ""));
+    if (deltaPrice === "minPrice") {
+      return Number(prices[0]);
+    } else if (deltaPrice === "maxPrice" && prices[1]) {
+      return Number(prices[1]);
+    }
+    return Number(prices[0]);
   }
 
   ///////////////////////////////////////////////////////////////////////
@@ -70,10 +75,17 @@ class ParserCards {
               description: selector(element)
                 .find("span.fr-card-list__description")
                 .text(),
-              price: this.numFromStr(
+              priceMax: this.numFromStr(
                 selector(element)
                   .find("p.fr-card-list__price > span:nth-child(2)")
-                  .text()
+                  .text(),
+                "minPrice"
+              ),
+              priceMin: this.numFromStr(
+                selector(element)
+                  .find("p.fr-card-list__price > span:nth-child(2)")
+                  .text(),
+                "maxPrice"
               ),
               fullDescription: await this.parseDescription(
                 selector(element).find(".stretched-link").attr("href")
