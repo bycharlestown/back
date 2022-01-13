@@ -222,7 +222,8 @@ class ParserCards {
         const image = result.image;
         const title = result.title;
         const description = result.description;
-        const price = result.price;
+        const priceMin = result.priceMin;
+        const priceMax = result.priceMax;
 
         const fullDescription = result.fullDescription[0];
         const uniqueID = uuidv4();
@@ -236,17 +237,67 @@ class ParserCards {
         const quartersRequirements = fullDescription.quartersRequirements;
 
         client.query(
-          "INSERT INTO cards_info(id, image, title, description, price) VALUES($1, $2, $3, $4, $5) RETURNING *;",
-          [uniqueID, image, title, description, price],
+          `
+          INSERT INTO cards_info (
+            id, 
+            image, 
+            title, 
+            description, 
+            price_min, 
+            price_max
+            )
+          VALUES ($1, $2, $3, $4, $5, $6) 
+          ON CONFLICT (title) 
+          WHERE ((title)::text = $3::text) 
+          DO 
+          UPDATE SET image = $2, 
+                     title = $3, 
+                     description = $4, 
+                     price_min = $5, 
+                     price_max = $6; 
+          `,
+          [uniqueID, image, title, description, priceMin, priceMax],
           (err, res) => {
-            if (err) console.log("Query cards_info ERROR: ", title, err.stack);
+            if (err)
+              console.log(
+                "QUERY: INSERT/UPDATE cards_info ERROR: ",
+                title,
+                err.stack
+              );
           }
         );
 
         client.query(
-          "INSERT INTO full_descriptions(card_id, category, price_franchise, main_info, company_descr, franch_descr, support_descr, buyers_requirements, quarters_requirements) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *;",
+          `
+          INSERT INTO full_descriptions (
+            card_id, 
+            title, 
+            category, 
+            price_franchise, 
+            main_info, 
+            company_descr, 
+            franch_descr, 
+            support_descr, 
+            buyers_requirements, 
+            quarters_requirements
+            ) 
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
+          ON CONFLICT (title) 
+          WHERE ((title)::text = $2::text) 
+          DO 
+          UPDATE SET title = $2, 
+                     category = $3, 
+                     price_franchise = $4, 
+                     main_info = $5, 
+                     company_descr = $6, 
+                     franch_descr = $7, 
+                     support_descr = $8, 
+                     buyers_requirements = $9, 
+                     quarters_requirements = $10;
+          `,
           [
             uniqueID,
+            title,
             category,
             priceFranchise,
             mainInfo,
@@ -258,13 +309,22 @@ class ParserCards {
           ],
           (err, res) => {
             if (err)
-              console.log("Query full_description ERROR: ", title, err.stack);
+              console.log(
+                "QUERY: INSERT/UPDATE full_descriptions ERROR: ",
+                title,
+                err.stack
+              );
           }
         );
       } catch (error) {
         console.log(error);
       } finally {
-        console.log(fullDescription.category, id, "was sent to the DB");
+        console.log(
+          result.fullDescription[0].category,
+          result.title,
+          id + 1,
+          "was sent to the Data Base"
+        );
       }
     });
   }
