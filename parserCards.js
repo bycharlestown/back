@@ -32,11 +32,8 @@ class ParserCards {
 
   numFromStr(price, deltaPrice) {
     let prices = price.split("—").map((s) => s.replace(/\D/g, ""));
-    if (deltaPrice === "minPrice") {
-      return Number(prices[0]);
-    } else if (deltaPrice === "maxPrice" && prices[1]) {
-      return Number(prices[1]);
-    }
+    if (deltaPrice === "minPrice") return Number(prices[0]);
+    else if (deltaPrice === "maxPrice" && prices[1]) return Number(prices[1]);
     return Number(prices[0]);
   }
 
@@ -94,7 +91,7 @@ class ParserCards {
           });
 
           // Masking img URL using Cloudinary
-          this.changeImageURL(promiseCard);
+          // this.changeImageURL(promiseCard);
 
           const promiseCardResult = await promiseCard;
 
@@ -136,14 +133,76 @@ class ParserCards {
               .find("ul.breadcrumb-new > li:nth-child(2) > a")
               .attr("href")
               .replace(/.*?-c-/gi, ""),
-            priceFranchise: selector(el)
-              .find(".fr-page__price-inner")
+            lumpSum: selector(el)
+              .find(".fr-page__item-title")
+              .filter(function (i, el) {
+                return $(el).text().includes("паушальный взнос");
+              })
+              .find("span")
               .text()
-              ?.replace(/\n/g, ""),
-            mainInfo: selector(el)
+              .replace(/\&nbsp;/g, " "),
+            forecastRevenue: selector(el)
+              .find(".fr-page__item-title")
+              .filter(function (i, el) {
+                return $(el).text().includes("Прогнозируемая выручка");
+              })
+              .find("span")
+              .text()
+              .replace(/\&nbsp;/g, " "),
+            forecastNetIncome: selector(el)
+              .find(".fr-page__item-title")
+              .filter(function (i, el) {
+                return $(el).text().includes("Возможная чистая прибыль");
+              })
+              .find("span")
+              .text()
+              .replace(/\&nbsp;/g, " "),
+            royaltySum: selector(el)
+              .find(".fr-page__item-title")
+              .filter(function (i, el) {
+                return $(el).text().includes("Роялти");
+              })
+              .find("span")
+              .text(),
+            numEnterpises: selector(el)
+              .find(".fr-page__basic-info-text")
+              .filter(function (i, el) {
+                return $(el).text().includes("Собственных предприятий");
+              })
+              .find("span")
+              .text(),
+            numFranchises: selector(el)
+              .find(".fr-page__basic-info-text")
+              .filter(function (i, el) {
+                return $(el).text().includes("Франшизных предприятий");
+              })
+              .find("span")
+              .text(),
+            startYear: selector(el)
+              .find(".fr-page__basic-info-text")
+              .filter(function (i, el) {
+                return $(el).text().includes("Год запуска франчайзинга");
+              })
+              .find("span")
+              .text(),
+            startPeriod: selector(el)
               .find(".fr-page__basic-info-text")
               .filter(function (i, el) {
                 return $(el).text().includes("Срок запуска бизнеса");
+              })
+              .find("span")
+              .text(),
+            paybackPeriod: selector(el)
+              .find(".fr-page__basic-info-text")
+              .filter(function (i, el) {
+                return $(el).text().includes("Срок окупаемости");
+              })
+              .find("span")
+              .text(),
+            foundYear: selector(el)
+              .find(".fr-page__basic-info-text")
+              .filter(function (i, el) {
+                return $(el).text().includes("Год основания компании");
               })
               .find("span")
               .text(),
@@ -169,7 +228,6 @@ class ParserCards {
               ?.replace(/\n/g, ""),
           });
         });
-
         const promiseDescriptionResult = await promiseDescription;
 
         franchiseData.push(promiseDescriptionResult);
@@ -222,7 +280,6 @@ class ParserCards {
       console.log(error);
     } finally {
       console.log("THE PARSER WAS FINISHED");
-
       // client.end();
       return;
     }
