@@ -346,7 +346,7 @@ class ParserCards {
   }
 }
 
-// export default new ParserCards();
+export default new ParserCards();
 
 let start = new ParserCards();
 start.parseData();
