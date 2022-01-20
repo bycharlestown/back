@@ -79,13 +79,13 @@ class ParserCards {
                 selector(element)
                   .find("p.fr-card-list__price > span:nth-child(2)")
                   .text(),
-                "minPrice"
+                "maxPrice"
               ),
               priceMin: this.numFromStr(
                 selector(element)
                   .find("p.fr-card-list__price > span:nth-child(2)")
                   .text(),
-                "maxPrice"
+                "minPrice"
               ),
               fullDescription: await this.parseDescription(
                 selector(element).find(".stretched-link").attr("href")
@@ -141,9 +141,12 @@ class ParserCards {
               .text()
               ?.replace(/\n/g, ""),
             mainInfo: selector(el)
-              .find(".fr-page__basic-info-box")
-              .text()
-              ?.replace(/\n/g, ""),
+              .find(".fr-page__basic-info-text")
+              .filter(function (i, el) {
+                return $(el).text().includes("Срок запуска бизнеса");
+              })
+              .find("span")
+              .text(),
             companyDescr: selector(el)
               .find("#company_descr_tpl")
               .text()
@@ -232,6 +235,7 @@ class ParserCards {
     results.forEach((result, id) => {
       try {
         const image = result.image;
+        console.log(image);
         const title = result.title;
         const description = result.description;
         const priceMin = result.priceMin;

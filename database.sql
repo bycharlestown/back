@@ -13,7 +13,7 @@ CREATE TABLE cards_info(
 
 CREATE TABLE full_descriptions(
     card_id varchar(80) references cards_info(id),
-    title text references cards_info(title),
+    title text UNIQUE references cards_info(title),
     category text NOT NULL,
     price_franchise text,
     main_info text,

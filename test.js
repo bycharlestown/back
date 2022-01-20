@@ -1,11 +1,13 @@
 // TEST SOMETHING...
 
-class Hello {
-  sayHello() {
-    console.log("hello");
-  }
-}
+const arrs = [[1, 2, 3], 4, [5, 6], [[7, 8], 9]];
 
-const hello = new Hello();
+const fn = (arr) => {
+  arr.forEach((item) => {
+    if (typeof item === "number") {
+      console.log(item);
+    } else fn(item);
+  });
+};
 
-hello.sayHello();
+fn(arrs);
