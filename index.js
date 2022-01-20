@@ -2,7 +2,7 @@ import express, { json } from "express";
 import https from "https";
 import fs from "fs";
 import parserRouter from "./routes/parser.route.js";
-// import ParserCards from "./parserCards.js";
+// import ParserCards from "./parser.js";
 import cors from "cors";
 
 // MIDDLEWARE

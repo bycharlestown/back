@@ -136,7 +136,7 @@ class ParserCards {
             lumpSum: selector(el)
               .find(".fr-page__item-title")
               .filter(function (i, el) {
-                return $(el).text().includes("паушальный взнос");
+                return $(el).text().includes("в том числе паушальный взнос");
               })
               .find("span")
               .text()
@@ -291,18 +291,34 @@ class ParserCards {
   insertToDataBase(results) {
     results.forEach((result, id) => {
       try {
+        const uniqueID = uuidv4();
+
+        // cards info TABLE:
         const image = result.image;
-        console.log(image);
         const title = result.title;
         const description = result.description;
         const priceMin = result.priceMin;
         const priceMax = result.priceMax;
 
+        // full descriptions TABLE:
         const fullDescription = result.fullDescription[0];
-        const uniqueID = uuidv4();
         const category = fullDescription.category;
-        const priceFranchise = fullDescription.priceFranchise;
-        const mainInfo = fullDescription.mainInfo;
+
+        ///////// main franchise info:
+        const numEnterpises = fullDescription.numEnterpises;
+        const numFranchises = fullDescription.numFranchises;
+        const startYear = fullDescription.startYear;
+        const startPeriod = fullDescription.startPeriod;
+        const paybackPeriod = fullDescription.paybackPeriod;
+        const foundYear = fullDescription.foundYear;
+
+        //////// price franchise:
+        const lumpSum = fullDescription.lumpSum;
+        const forecastRevenue = fullDescription.forecastRevenue;
+        const forecastNetIncome = fullDescription.forecastNetIncome;
+        const royaltySum = fullDescription.royaltySum;
+
+        //////// rest franchise info:
         const companyDescr = fullDescription.companyDescr;
         const franchDescr = fullDescription.franchDescr;
         const supportDescr = fullDescription.supportDescr;
@@ -346,34 +362,67 @@ class ParserCards {
             card_id, 
             title, 
             category, 
-            price_franchise, 
-            main_info, 
+            
+            num_enterpises,
+            num_franchises,
+            start_year,
+            start_period,
+            payback_period,
+            found_year, 
+
+            lump_sum,
+            forecast_revenue,
+            forecast_net_income,
+            royalty_sum,
+
             company_descr, 
             franch_descr, 
             support_descr, 
             buyers_requirements, 
             quarters_requirements
             ) 
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18) 
           ON CONFLICT (title) 
           WHERE ((title)::text = $2::text) 
           DO 
           UPDATE SET title = $2, 
                      category = $3, 
-                     price_franchise = $4, 
-                     main_info = $5, 
-                     company_descr = $6, 
-                     franch_descr = $7, 
-                     support_descr = $8, 
-                     buyers_requirements = $9, 
-                     quarters_requirements = $10;
+
+                     num_enterpises = $4,
+                     num_franchises = $5,
+                     start_year = $6,
+                     start_period = $7,
+                     payback_period = $8,
+                     found_year = $9, 
+
+                     lump_sum = $10,
+                     forecast_revenue = $11,
+                     forecast_net_income = $12,
+                     royalty_sum = $13,
+
+                     company_descr = $14, 
+                     franch_descr = $15, 
+                     support_descr = $16, 
+                     buyers_requirements = $17, 
+                     quarters_requirements = $18;
           `,
           [
             uniqueID,
             title,
             category,
-            priceFranchise,
-            mainInfo,
+
+            numEnterpises,
+            numFranchises,
+            startYear,
+            startPeriod,
+            paybackPeriod,
+            foundYear,
+
+            lumpSum,
+            forecastRevenue,
+            forecastNetIncome,
+            royaltySum,
+
             companyDescr,
             franchDescr,
             supportDescr,
@@ -403,7 +452,7 @@ class ParserCards {
   }
 }
 
-export default new ParserCards();
+// export default new ParserCards();
 
 let start = new ParserCards();
 start.parseData();
