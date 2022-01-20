@@ -141,9 +141,12 @@ class ParserCards {
               .text()
               ?.replace(/\n/g, ""),
             mainInfo: selector(el)
-              .find(".fr-page__basic-info-box")
-              .text()
-              ?.replace(/\n/g, ""),
+              .find(".fr-page__basic-info-text")
+              .filter(function (i, el) {
+                return $(el).text().includes("Срок запуска бизнеса");
+              })
+              .find("span")
+              .text(),
             companyDescr: selector(el)
               .find("#company_descr_tpl")
               .text()
@@ -342,7 +345,7 @@ class ParserCards {
   }
 }
 
-// export default new ParserCards();
+export default new ParserCards();
 
 let start = new ParserCards();
 start.parseData();
