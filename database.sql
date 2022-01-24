@@ -17,12 +17,12 @@ CREATE TABLE full_descriptions(
     category text NOT NULL,
 
     -- main info:
-    num_enterpises text,
-    num_franchises text,
-    start_year text,
+    num_enterpises INTEGER,
+    num_franchises INTEGER,
+    start_year INTEGER,
     start_period text,
     payback_period text,
-    found_year text,
+    found_year INTEGER,
 
     -- price of franchise:
     lump_sum text,
