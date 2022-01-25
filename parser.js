@@ -91,7 +91,7 @@ class ParserCards {
           });
 
           // Masking img URL using Cloudinary
-          // this.changeImageURL(promiseCard);
+          this.changeImageURL(promiseCard);
 
           const promiseCardResult = await promiseCard;
 
@@ -136,7 +136,7 @@ class ParserCards {
             lumpSum: selector(el)
               .find(".fr-page__item-title")
               .filter(function (i, el) {
-                return $(el).text().includes("в том числе паушальный взнос");
+                return $(el).text().includes("В том числе паушальный взнос");
               })
               .find("span")
               .text()
